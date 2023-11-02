@@ -1,0 +1,73 @@
+
+---
+title: "Noel's Part"
+author: "Noel Raehl"
+date: "2023-11-02"
+output: html_document
+---
+
+
+
+```{r}
+# Load necessary libraries
+library(tidymodels)
+library(tidyverse)
+```
+
+
+```{r}
+# Load home_runs dataset
+url <- "https://ajohns24.github.io/data/home_runs.csv"
+home_runs_data <- read_csv(url)
+```
+
+```{r}
+glimpse(home_runs_data)
+summary(home_runs_data)
+
+home_runs_data$home_team <- as.factor(home_runs_data$home_team)
+```
+
+
+
+```{r}
+recipe_lasso <- recipe(is_home_run ~ ., data = home_runs_data) %>% 
+  step_dummy(all_nominal_predictors())
+```
+
+
+```{r}
+# Define and train the logistic regression model with Lasso regularization
+logistic_spec <- logistic_reg(penalty = 1, mixture = 1) %>%
+  set_mode("classification") %>% 
+  set_engine("glmnet")
+
+```
+
+
+```{r}
+lasso_workflow <- workflow() %>% 
+  add_recipe(recipe_lasso) %>% 
+  add_model(logistic_spec)
+```
+
+```{r}
+set.seed(253)
+lasso_models <- lasso_workflow %>% 
+  tune_grid(
+    grid = grid_regular(penalty(range = c(-3, -0.5)), levels = 50),  
+    resamples = vfold_cv(home_runs_data, v = 10),   
+    metrics = metric_set(accuracy)
+  )
+```
+
+```{r}
+parsimonious_penalty <- lasso_models %>% 
+  select_by_one_std_err(metric = "accuracy", desc(penalty))
+parsimonious_penalty
+
+parsimonious_model <- lasso_workflow %>% 
+  finalize_workflow(parameters = parsimonious_penalty) %>% 
+  fit(data = sydney)
+
+```
