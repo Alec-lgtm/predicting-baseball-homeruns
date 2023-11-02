@@ -37,6 +37,18 @@ home_runs_data$bb_type <- as.factor(home_runs_data$bb_type)
 home_runs_data$park <- as.factor(home_runs_data$park)
 home_runs_data$Cover <- as.factor(home_runs_data$Cover)
 home_runs_data$pitchname <- as.factor(home_runs_data$pitch_name)
+home_runs_data$bearing <- as.factor(home_runs_data$bearing)
+
+home_runs_data$batter_name <- as.factor(home_runs_data$batter_name)
+
+
+
+library(dplyr)
+
+# Convert all character variables to factors
+home_runs_data <- home_runs_data %>%
+  mutate_if(is.character, as.factor)
+
 ```
 
 
