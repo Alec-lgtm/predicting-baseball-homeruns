@@ -1,5 +1,5 @@
 ---
-title: "main"
+title: "Tom"
 author: "Tom Andreae"
 date: "2023-11-02"
 output: html_document
@@ -9,4 +9,141 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-### Hello World
+## Tom's Code
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidymodels)
+library(tidyverse)
+library(rpart)        # for building trees
+library(rpart.plot)   # for plotting trees
+library(randomForest) # for bagging & forests
+library(infer)        # for resampling
+library(fivethirtyeight)
+library(ranger)
+tidymodels_prefer()
+```
+
+```{r}
+baseball <- read.csv("https://ajohns24.github.io/data/home_runs.csv")
+
+baseball <- baseball %>%
+  mutate(is_home_run = ifelse(is_home_run == 1, "yes", "no"))
+
+baseball <- baseball %>%
+  mutate(is_home_run = as.factor(is_home_run))
+```
+
+```{r}
+# STEP 1: tree specification
+tree_spec <- decision_tree() %>%
+  set_mode("classification") %>% 
+  set_engine(engine = "rpart") %>% 
+  set_args(cost_complexity = 0, min_n = 2, tree_depth = 30)
+
+# STEP 2: Build the tree! No tuning (hence no workflows) necessary.
+original_tree <- tree_spec %>% 
+  fit(is_home_run ~ ., data = baseball)
+
+# Plot the tree
+original_tree %>% 
+  extract_fit_engine() %>% 
+  plot(margin = 0) 
+original_tree %>% 
+  extract_fit_engine() %>% 
+  text(cex = 0.8)
+```
+```{r}
+# Set the seed to YOUR phone number (just the numbers)
+set.seed(253)
+
+# Take a REsample of candies from our sample
+re_baseball <- sample_n(baseball, size = nrow(baseball), replace = TRUE)
+
+# Check it out
+head(re_baseball, 3)
+```
+```{r}
+# Build your tree
+my_tree <- tree_spec %>% 
+  fit(is_home_run ~ ., data = baseball)
+
+# Plot your tree
+my_tree %>% 
+  extract_fit_engine() %>% 
+  plot(margin = 0) 
+my_tree %>% 
+  extract_fit_engine() %>% 
+  text(cex = 0.8)
+```
+```{r}
+# FOREST
+# Build the forest / bagging model
+
+# STEP 1: Model Specification
+rf_spec <- rand_forest()  %>%
+  set_mode("classification") %>%
+  set_engine(engine = "ranger") %>% 
+  set_args(
+    mtry = NULL,
+    trees = 500,
+    min_n = 2,
+    probability = FALSE, # give classifications, not probability calculations
+    importance = "impurity" # use Gini index to measure variable importance
+  )
+
+# STEP 2: Build the forest or bagging model
+# There are no preprocessing steps or tuning, hence no need for a workflow!
+ensemble_model <- rf_spec %>% 
+  fit(is_home_run ~., data = baseball)
+```
+
+```{r}
+# Use the model to make predictions / classifications
+
+ensemble_model %>% 
+  predict(new_data = baseball)  
+```
+
+```{r}
+# Examine variable importance
+
+# Print the metrics
+ensemble_model %>%
+  extract_fit_engine() %>%
+  pluck("variable.importance") %>% 
+  sort(decreasing = TRUE)
+
+# Plot the metrics
+# Plug in the number of top predictors you wish to plot
+# (The upper limit varies by application!)
+library(vip)
+ensemble_model %>% 
+  vip(geom = "point", num_features = 32)
+```
+
+```{r}
+# Evaluate the classifications
+
+# Out-of-bag (OOB) prediction error
+ensemble_model
+
+# OOB confusion matrix
+ensemble_model %>% 
+  extract_fit_engine() %>% 
+  pluck("confusion.matrix") %>% 
+  t()
+
+# In-sample confusion matrix
+ensemble_model %>% 
+  predict(new_data = baseball) %>% 
+  cbind(baseball) %>% 
+  conf_mat(
+    truth = y,
+    estimate = .pred_class
+  )
+```
+
+
+### GRAVEYARD of Code
