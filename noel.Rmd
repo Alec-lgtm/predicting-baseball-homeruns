@@ -22,10 +22,21 @@ home_runs_data <- read_csv(url)
 ```
 
 ```{r}
-glimpse(home_runs_data)
 summary(home_runs_data)
 
 home_runs_data$home_team <- as.factor(home_runs_data$home_team)
+
+
+
+home_runs_data$away_team <- as.factor(home_runs_data$away_team)
+
+home_runs_data$batter_team <- as.factor(home_runs_data$batter_team)
+
+home_runs_data$pitcher_name <- as.factor(home_runs_data$pitcher_name)
+home_runs_data$bb_type <- as.factor(home_runs_data$bb_type)
+home_runs_data$park <- as.factor(home_runs_data$park)
+home_runs_data$Cover <- as.factor(home_runs_data$Cover)
+home_runs_data$pitchname <- as.factor(home_runs_data$pitch_name)
 ```
 
 
@@ -38,7 +49,7 @@ recipe_lasso <- recipe(is_home_run ~ ., data = home_runs_data) %>%
 
 ```{r}
 # Define and train the logistic regression model with Lasso regularization
-logistic_spec <- logistic_reg(penalty = 1, mixture = 1) %>%
+logistic_spec <- logistic_reg(penalty = tune()) %>%
   set_mode("classification") %>% 
   set_engine("glmnet")
 
