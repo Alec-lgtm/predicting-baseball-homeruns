@@ -8,4 +8,58 @@ date: "2023-11-02"
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## Alec's Stuff
+Packages:
+
+```{r}
+library(tidyverse)
+library(tidymodels)
+```
+
+```{r}
+baseball <- read.csv("https://ajohns24.github.io/data/home_runs.csv")
+```
+
+```{r}
+summary(baseball)
+```
+
+```{r}
+baseball %>%
+  filter(is_home_run == 1) %>%
+  ggplot(aes(x = factor(pitch_name,
+                        levels = c("Split-Finger",
+                                   "Knuckle Curve",
+                                   "Cutter",
+                                   "Curveball",
+                                   "Changeup",
+                                   "Sinker",
+                                   "Slider",
+                                   "4-Seam Fastball"))))+geom_bar(fill = 'skyblue',color = 'black')+
+  labs(title = 'Number of home runs given each pitch type',
+       x = "Pitch Type",
+       y = "Count")+coord_flip()+
+  theme_minimal()
+```
+
+```{r}
+baseball %>%
+  ggplot(aes(x = factor(is_batter_lefty, labels = c("Right-handed","Left-handed")), 
+             fill = factor(is_home_run, labels = c("No","Yes")))) + 
+  geom_bar(position = "fill") + 
+    labs(x = 'Batter Handedness', y = 'Proportion', fill = 'Homerun') + 
+    scale_fill_manual(values = c("steelblue", "lightblue")) + 
+    theme_classic()
+```
+
+
+
+
+
+### Graveyard of Code
+
+Failed attempt at:
+
+```{r}
+# I tried
+```
+
