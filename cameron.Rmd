@@ -1,0 +1,32 @@
+---
+title: "Group Assignment 2"
+author: "Cameron Latvis"
+date: "2023-11-16"
+output: html_document
+---
+
+```{r}
+library(dplyr)
+library(ggplot2)
+library(tidymodels)
+library(tidyverse)
+library(rpart)        # for building trees
+library(rpart.plot)   # for plotting trees
+library(randomForest) # for bagging & forests
+library(infer)        # for resampling
+library(fivethirtyeight)
+library(ranger)
+tidymodels_prefer()
+```
+
+```{r}
+# Read In
+baseball <- read.csv("https://ajohns24.github.io/data/home_runs.csv")
+
+baseball <- baseball %>%
+  mutate(is_home_run = ifelse(is_home_run == 1, "yes", "no"))
+
+baseball <- baseball %>%
+  mutate(is_home_run = as.factor(is_home_run))
+```
+
